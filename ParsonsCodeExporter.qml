@@ -8,7 +8,6 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.1
 import Qt.labs.folderlistmodel 2.1
 import Qt.labs.settings 1.0
-//import QtQml 2.2
 
 import MuseScore 1.0
 import FileIO 1.0
@@ -16,13 +15,13 @@ import FileIO 1.0
 
 MuseScore {
 	menuPath: "Plugins.Parsons Code Export"
-	version: "0.5"
+	version: "1.0"
 	description: "Save Parsons Code of a voice to a text file."
-	pluginType: "dialog"
+	//pluginType: "dialog" //prevents auto-update of the combobox when ran from Menu
 	//requiresScore: true //not supported before 2.1.0, manual checking onRun
 
-	width:  320
-	height: 180
+	//width:  320 //moved to the Dialog item
+	//height: 180 //moved to the Dialog item
 
 	onRun: {
 		if (!curScore) {
@@ -30,6 +29,7 @@ MuseScore {
 			Qt.quit();
 		}
 		fillDropDowns();
+		pluginDialog.open();
 	}
 
 	Component.onDestruction: {
@@ -62,6 +62,7 @@ MuseScore {
 
 	Settings {
 		id: settings
+		category: "ParsonsCodeExporter"
 		property alias exportDirectory: exportDirectory.text
 	}
 
@@ -81,61 +82,68 @@ MuseScore {
 		Component.onCompleted: visible = false
 	}
 
-	Rectangle {
-		color: "lightgrey"
-		anchors.fill: parent
-
-		GridLayout {
-			columns: 2
+	Dialog {
+		id: pluginDialog
+		width: 320
+		height: 180
+	
+		contentItem: Rectangle {
+			color: "lightgrey"
 			anchors.fill: parent
-			anchors.margins: 10
 
-			Label {
-				text: qsTranslate("Ms::ScoreView", "Staff") + ": "
-			}
-			ComboBox {
-				id: staffSelection
-				model: ListModel {
-					id: staffList
-					 //dummy ListElement required for initial creation of this component
-					ListElement { text: "partName+staff"; partName: "part.partName"; partStartTrack: 0 }
-				}
-			}
+			GridLayout {
+				columns: 2
+				anchors.fill: parent
+				anchors.margins: 10
 
-			Label {
-				text: qsTranslate("StaffTextProperties", "Voice:")
-			}
-			ComboBox {
-				id: voiceSelection
-				model: ListModel {
-					id: voiceList
-					//dummy ListElement required for initial creation of this component
-					ListElement { text: "v1";/* voiceOffset: 0;*/ }
+				Label {
+					text: qsTranslate("Ms::ScoreView", "Staff") + ": "
 				}
-			}
+				ComboBox {
+					id: staffSelection
+					model: ListModel {
+						id: staffList
+						 //dummy ListElement required for initial creation of this component
+						ListElement { text: "partName+staff"; partName: "part.partName"; partStartTrack: 0 }
+					}
+				}
 
-			Button {
-				id: selectDirectory
-				text: qsTranslate("PrefsDialogBase", "Browse...")
-				onClicked: {
-					directorySelectDialog.open();
+				Label {
+					text: qsTranslate("StaffTextProperties", "Voice:")
 				}
-			}
-			Label {
-				id: exportDirectory
-				text: ""
-			}
-			
-			Button {
-				id: exportButton
-				Layout.columnSpan: 2
-				text: qsTranslate("PrefsDialogBase", "Export")
-				onClicked: {
-					exportParsons();
-					Qt.quit();
+				ComboBox {
+					id: voiceSelection
+					model: ListModel {
+						id: voiceList
+						//dummy ListElement required for initial creation of this component
+						ListElement { text: "v1";/* voiceOffset: 0;*/ }
+					}
 				}
-			}
 
+				Button {
+					id: selectDirectory
+					text: qsTranslate("PrefsDialogBase", "Browse...")
+					onClicked: {
+						directorySelectDialog.open();
+					}
+				}
+				Label {
+					id: exportDirectory
+					text: ""
+				}
+				
+				Button {
+					id: exportButton
+					Layout.columnSpan: 2
+					text: qsTranslate("PrefsDialogBase", "Export")
+					onClicked: {
+						exportParsons();
+						pluginDialog.close();
+						Qt.quit();
+					}
+				}
+
+			}
 		}
 	}
 
